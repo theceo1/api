@@ -39,6 +39,10 @@ export abstract class Init<ApiType extends ApiTypes> extends Decorate<ApiType> {
   #updateSub?: Subscription | null = null;
   #waitingRegistries: Record<HexString, Promise<VersionedRegistry<ApiType>>> = {};
 
+  protected _query: QueryableStorage<ApiType> = {} as QueryableStorage<ApiType>;
+  protected _queryMulti?: QueryableStorageMulti<ApiType>;
+  protected _queryOnce?: QueryableStorageOnce<ApiType>;
+
   constructor (options: ApiOptions, type: ApiTypes, decorateMethod: DecorateMethod<ApiType>) {
     super(options, type, decorateMethod);
 
@@ -60,6 +64,10 @@ export abstract class Init<ApiType extends ApiTypes> extends Decorate<ApiType> {
     if (this.supportMulti) {
       this._queryMulti = this._decorateMulti(this._decorateMethod);
       this._rx.queryMulti = this._decorateMulti(this._rxDecorateMethod);
+      
+      // Initialize queryOnce for one-shot storage queries
+      this._queryOnce = this._decorateOnce(this._decorateMethod);
+      this._rx.queryOnce = this._decorateOnce(this._rxDecorateMethod);
     }
 
     this._rx.signer = options.signer;
