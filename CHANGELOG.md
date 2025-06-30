@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## Unreleased
+
+Changes:
+
+- feat(api): Add `queryOnce` method for one-shot storage queries ([#XXXX](https://github.com/polkadot-js/api/pull/XXXX))
+  - Implements a new `queryOnce` method that allows fetching storage values with a single RPC call
+  - Similar to `query.multi` but returns a Promise instead of an Observable
+  - Useful for one-time fetches where subscription is not needed
+
+
 ## 16.2.2 Jun 17, 2025
 
 Changes:

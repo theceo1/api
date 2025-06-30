@@ -92,10 +92,20 @@ export interface QueryableStorageMultiPromise<ApiType extends ApiTypes> {
   <T extends Codec[]>(calls: QueryableStorageMultiArg<ApiType>[]): Promise<T>;
 }
 
+export interface QueryableStorageOncePromise<ApiType extends ApiTypes> {
+  <T extends Codec[]>(calls: QueryableStorageMultiArg<ApiType>[]): Promise<T>;
+  <T extends Codec[]>(calls: QueryableStorageMultiArg<ApiType>[], callback: Callback<T>): UnsubscribePromise;
+}
+
 export type QueryableStorageMulti<ApiType extends ApiTypes> =
   ApiType extends 'rxjs'
     ? QueryableStorageMultiBase<ApiType>
     : QueryableStorageMultiPromise<ApiType>;
+
+export type QueryableStorageOnce<ApiType extends ApiTypes> =
+  ApiType extends 'rxjs'
+    ? QueryableStorageMultiBase<ApiType>
+    : QueryableStorageOncePromise<ApiType>;
 
 export type AugmentedQuery<ApiType extends ApiTypes, F extends AnyFunction, A extends AnyTuple = AnyTuple> = MethodResult<ApiType, F> & StorageEntryBase<ApiType, F, A>;
 

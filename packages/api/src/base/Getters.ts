@@ -7,6 +7,7 @@ import type { Hash, RuntimeVersion } from '@polkadot/types/interfaces';
 import type { Metadata } from '@polkadot/types/metadata';
 import type { CallFunction, RegistryError } from '@polkadot/types/types';
 import type { ApiDecoration, ApiInterfaceRx, ApiTypes, DecoratedErrors, DecoratedEvents, DecoratedRpc, QueryableCalls, QueryableConsts, QueryableStorage, QueryableStorageMulti, SubmittableExtrinsics } from '../types/index.js';
+import type { QueryableStorageOnce } from '@polkadot/api-base/types/storage';
 
 import { packageInfo } from '../packageInfo.js';
 import { findCall, findError } from './find.js';
@@ -149,6 +150,49 @@ export abstract class Getters<ApiType extends ApiTypes> extends Init<ApiType> im
    */
   public get queryMulti (): QueryableStorageMulti<ApiType> {
     return assertResult(this._queryMulti);
+  }
+
+  /**
+   * @name queryOnce
+   * @summary Performs a one-time query to multiple storage entries and returns the results as a Promise.
+   * @description This method is optimized for one-time storage queries where you don't need a subscription.
+   * It's more efficient than `queryMulti` for one-time queries as it doesn't set up a subscription.
+   *
+   * @example
+   * <BR>
+   *
+   * ```javascript
+   * // Single query without parameters
+   * const [totalIssuance] = await api.queryOnce([
+   *   api.query.balances.totalIssuance
+   * ]);
+   * console.log('Total issuance:', totalIssuance.toHuman());
+   *
+   * // Multiple queries with parameters
+   * const [totalIssuance, accountInfo] = await api.queryOnce([
+   *   api.query.balances.totalIssuance,
+   *   [api.query.system.account, '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY']
+   * ]);
+   * console.log('Account info:', accountInfo.toHuman());
+   *
+   * // Query with multiple parameters
+   * const [storageValue] = await api.queryOnce([
+   *   [api.query.staking.erasRewardPoints, 123] // For a map with u32 key
+   * ]);
+   * ```
+   *
+   * @param queries An array of storage queries. Each query can be either:
+   * - A storage key function (e.g., `api.query.balances.totalIssuance`)
+   * - A tuple of `[storageKey, ...params]` for parameterized queries
+   * @returns A promise that resolves to an array of the query results in the same order as the input queries
+   *
+   * @see [[query]] For single storage queries
+   * @see [[queryMulti]] For subscribing to multiple storage queries
+   *
+   * @throws {Error} If the API is not connected or if there's an error in the underlying RPC call
+   */
+  public get queryOnce (): QueryableStorageOnce<ApiType> {
+    return assertResult(this._queryOnce);
   }
 
   /**

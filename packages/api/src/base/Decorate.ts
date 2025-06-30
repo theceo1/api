@@ -701,6 +701,32 @@ export abstract class Decorate<ApiType extends ApiTypes> extends Events {
     );
   }
 
+  /**
+   * @description Create a decorated queryOnce function that performs a one-shot storage query
+   * @internal
+   */
+  protected _decorateOnce<ApiType extends ApiTypes> (decorateMethod: DecorateMethod<ApiType>): QueryableStorageOnce<ApiType> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return decorateMethod((keys: QueryableStorageMultiArg<ApiType>[]): Observable<Codec[]> => {
+      if (!keys.length) {
+        return of([]);
+      }
+
+      // For one-shot queries, we always use queryStorageAt to avoid setting up a subscription
+      return this._rpcCore.state.queryStorageAt(
+        keys.map((args: QueryableStorageMultiArg<ApiType>): [StorageEntry, ...unknown[]] =>
+          Array.isArray(args)
+            ? args[0].creator.meta.type.isPlain
+              ? [args[0].creator]
+              : args[0].creator.meta.type.asMap.hashers.length === 1
+                ? [args[0].creator, args.slice(1)]
+                : [args[0].creator, ...args.slice(1)]
+            : [args.creator]
+        )
+      );
+    });
+  }
+
   protected _decorateExtrinsics<ApiType extends ApiTypes> ({ tx }: DecoratedMeta, decorateMethod: DecorateMethod<ApiType>): SubmittableExtrinsics<ApiType> {
     const result = createSubmittable(this._type, this._rx, decorateMethod) as SubmittableExtrinsics<ApiType>;
 
